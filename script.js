@@ -1,18 +1,17 @@
 "use strict";
 
 const CATEGORIES = [
-  { name: "Food and drinks", icon: "☕", color: "#7c9bff" },
-  { name: "Transport", icon: "↗", color: "#63d7ba" },
-  { name: "School expenses", icon: "▤", color: "#c3a0ff" },
-  { name: "Shopping", icon: "◇", color: "#ffb86b" },
-  { name: "Entertainment", icon: "♫", color: "#ff8ca0" },
-  { name: "Health", icon: "✚", color: "#79d8ed" },
-  { name: "Subscriptions", icon: "◉", color: "#d7a4ff" },
-  { name: "Other", icon: "✦", color: "#a6b0c3" }
+  { name: "Food & Drinks", icon: "☕", color: "#d4a373" },
+  { name: "Transport", icon: "🚌", color: "#81b29a" },
+  { name: "Books & School", icon: "📚", color: "#f4a261" },
+  { name: "Shopping", icon: "🛍️", color: "#e76f51" },
+  { name: "Entertainment", icon: "🎬", color: "#c084fc" },
+  { name: "Health", icon: "💊", color: "#e07a5f" },
+  { name: "Subscriptions", icon: "📱", color: "#2a9d8f" },
+  { name: "Other", icon: "✨", color: "#ad9a8e" }
 ];
 
-const STORAGE_KEY = "ex-spend-v1";
-
+const STORAGE_KEY = "ex-spend-student-cafe-v1";
 const $ = id => document.getElementById(id);
 
 const money = amount =>
@@ -25,7 +24,6 @@ function localDate(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-
   return `${year}-${month}-${day}`;
 }
 
@@ -33,594 +31,444 @@ function currentMonth() {
   return localDate().slice(0, 7);
 }
 
-function formatDate(date) {
-  if (!date) return "—";
-
-  return new Date(date + "T12:00:00").toLocaleDateString("en-MY", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  });
+function escapeHTML(str) {
+  return String(str || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  })[c]);
 }
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[char]);
-}
-
-function getCategory(name) {
-  return CATEGORIES.find(category => category.name === name)
-    || CATEGORIES[CATEGORIES.length - 1];
-}
-
-// Load previously saved information.
+// Load default or local data
 function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-
-    if (saved && Array.isArray(saved.expenses)) {
+    if (saved) {
       return {
-        budget: Number(saved.budget) > 0 ? Number(saved.budget) : 300,
-        expenses: saved.expenses.filter(expense =>
-          expense &&
-          typeof expense.id === "string" &&
-          typeof expense.title === "string" &&
-          Number.isFinite(Number(expense.amount)) &&
-          Number(expense.amount) > 0 &&
-          /^\d{4}-\d{2}-\d{2}$/.test(expense.date || "")
-        )
+        budget: Number(saved.budget) || 300,
+        expenses: Array.isArray(saved.expenses) ? saved.expenses : [],
+        savings: Array.isArray(saved.savings) ? saved.savings : [],
+        score: Number(saved.score) || 0,
+        unlockedAchieve: Array.isArray(saved.unlockedAchieve) ? saved.unlockedAchieve : []
       };
     }
-  } catch (error) {
-    console.error("Could not load saved data:", error);
+  } catch (e) {
+    console.error("Load error:", e);
   }
-
-  return { budget: 300, expenses: [] };
+  return { budget: 300, expenses: [], savings: [], score: 0, unlockedAchieve: [] };
 }
 
 let state = loadData();
 let toastTimer;
 
-// Save information to this browser.
 function saveData() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    return true;
-  } catch (error) {
-    console.error("Could not save data:", error);
-    showToast("Unable to save data in this browser.");
-    return false;
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function showToast(message) {
+function showToast(msg) {
   const toast = $("toast");
-
-  toast.textContent = message;
+  toast.textContent = msg;
   toast.classList.add("show");
-
   clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2500);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-function selectedMonthExpenses() {
-  const month = $("monthFilter").value || currentMonth();
+// Navigation View Switcher
+document.querySelectorAll("[data-view]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    
+    btn.classList.add("active");
+    $(`${btn.dataset.view}View`).classList.add("active");
+  });
+});
 
-  return state.expenses.filter(expense =>
-    expense.date.slice(0, 7) === month
-  );
-}
+document.querySelectorAll("[data-goto]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.goto;
+    document.querySelector(`[data-view="${target}"]`).click();
+  });
+});
 
-function totalExpenses(expenses) {
-  return expenses.reduce(
-    (total, expense) => total + Number(expense.amount),
-    0
-  );
-}
-
-function sortNewestFirst(a, b) {
-  return b.date.localeCompare(a.date) || b.id.localeCompare(a.id);
-}
-
-// Populate category menus.
+// Category Population
 function setupCategories() {
-  $("expenseCategory").innerHTML = CATEGORIES.map(category =>
-    `<option value="${escapeHTML(category.name)}">
-      ${escapeHTML(category.name)}
-    </option>`
+  $("expenseCategory").innerHTML = CATEGORIES.map(c => 
+    `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`
   ).join("");
 
-  $("categoryFilter").innerHTML =
-    '<option value="all">All categories</option>' +
-    CATEGORIES.map(category =>
-      `<option value="${escapeHTML(category.name)}">
-        ${escapeHTML(category.name)}
-      </option>`
-    ).join("");
+  $("categoryFilter").innerHTML = '<option value="all">All categories</option>' + 
+    CATEGORIES.map(c => `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`).join("");
 }
 
-// Update dashboard figures.
+// EXPENSE & DASHBOARD LOGIC
+function selectedMonthExpenses() {
+  const month = $("monthFilter").value || currentMonth();
+  return state.expenses.filter(e => e.date.slice(0, 7) === month);
+}
+
 function renderDashboard() {
   const expenses = selectedMonthExpenses();
-  const spent = totalExpenses(expenses);
+  const spent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const remaining = state.budget - spent;
-  const percentage = state.budget > 0
-    ? spent / state.budget * 100
-    : 0;
+  const pct = state.budget > 0 ? (spent / state.budget) * 100 : 0;
 
   $("totalSpent").textContent = money(spent);
   $("budgetLeft").textContent = money(remaining);
   $("budgetAmount").textContent = money(state.budget);
+  
+  $("budgetLeft").style.color = remaining < 0 ? "var(--red)" : "var(--text)";
+  $("leftCaption").textContent = remaining < 0 ? `${money(Math.abs(remaining))} over budget` : "Room to make it count";
 
-  $("budgetLeft").style.color =
-    remaining < 0 ? "var(--red)" : "var(--text)";
-
-  $("leftCaption").textContent =
-    remaining < 0
-      ? `${money(Math.abs(remaining))} over budget`
-      : "Room to make it count";
-
-  $("budgetPercent").textContent = `${Math.round(percentage)}%`;
-
-  $("budgetMaximum").textContent =
-    money(state.budget).replace(/\.00$/, "");
-
-  $("budgetProgress").style.width =
-    `${Math.min(100, Math.max(0, percentage))}%`;
-
-  $("budgetProgress").className =
-    percentage >= 100
-      ? "danger"
-      : percentage >= 75
-        ? "warning"
-        : "";
+  $("budgetPercent").textContent = `${Math.round(pct)}%`;
+  $("budgetMaximum").textContent = money(state.budget);
+  
+  const progBar = $("budgetProgress");
+  progBar.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+  progBar.className = pct >= 100 ? "danger" : pct >= 75 ? "warning" : "";
 
   const status = $("budgetStatus");
-
-  status.className =
-    "pill" +
-    (percentage >= 100
-      ? " danger"
-      : percentage >= 75
-        ? " warning"
-        : "");
-
-  status.textContent =
-    percentage >= 100
-      ? "Budget exceeded"
-      : percentage >= 75
-        ? "Getting close"
-        : "On track";
-
-  let message = "✦ You're starting fresh. Make every ringgit count.";
-
-  if (spent > 0 && percentage < 75) {
-    message = "✦ You're within your budget. Keep checking your spending.";
-  } else if (percentage >= 75 && percentage < 100) {
-    message = "✦ You're getting close to your limit. Prioritise essentials.";
-  } else if (percentage >= 100) {
-    message = "✦ You've reached your budget. Review non-essential spending.";
-  }
-
-  $("budgetMessage").textContent = message;
+  status.className = "pill" + (pct >= 100 ? " danger" : pct >= 75 ? " warning" : "");
+  status.textContent = pct >= 100 ? "Budget Exceeded" : pct >= 75 ? "Getting Close" : "On Track";
 
   renderCategoryBreakdown(expenses, spent);
-
-  renderTransactionRows(
-    $("recentTransactions"),
-    expenses.slice().sort(sortNewestFirst).slice(0, 5)
-  );
+  renderTransactionTable($("recentTransactions"), expenses.slice(0, 5));
 }
 
-// Calculate and display category totals.
 function renderCategoryBreakdown(expenses, total) {
-  const totals = CATEGORIES.map(category => ({
-    ...category,
-    amount: totalExpenses(
-      expenses.filter(expense => expense.category === category.name)
-    )
-  }))
-    .filter(category => category.amount > 0)
-    .sort((a, b) => b.amount - a.amount);
-
   const container = $("categoryBreakdown");
-
-  if (!totals.length) {
-    container.innerHTML =
-      '<p class="empty">Your categories will appear here once you add expenses.</p>';
+  if (!expenses.length) {
+    container.innerHTML = '<p class="empty">No expenses recorded for this month.</p>';
     return;
   }
 
-  container.innerHTML = totals.map(category => {
-    const percentage = total > 0
-      ? category.amount / total * 100
-      : 0;
+  const totals = CATEGORIES.map(cat => ({
+    ...cat,
+    amount: expenses.filter(e => e.category === cat.name).reduce((sum, e) => sum + Number(e.amount), 0)
+  })).filter(c => c.amount > 0).sort((a, b) => b.amount - a.amount);
 
+  container.innerHTML = totals.map(c => {
+    const pct = total > 0 ? (c.amount / total) * 100 : 0;
     return `
       <div class="category-row">
-        <span class="category-name">${escapeHTML(category.name)}</span>
-        <div class="category-track">
-          <span style="width:${percentage}%;background:${category.color}"></span>
-        </div>
-        <span class="category-amount">${money(category.amount)}</span>
+        <span>${c.icon} ${escapeHTML(c.name)}</span>
+        <div class="category-track"><span style="width:${pct}%;background:${c.color}"></span></div>
+        <strong>${money(c.amount)}</strong>
       </div>
     `;
   }).join("");
 }
 
-// Render transaction tables.
-function renderTransactionRows(container, expenses) {
-  if (!expenses.length) {
-    container.innerHTML = `
-      <tr>
-        <td colspan="5" class="empty">
-          No expenses found. Add an expense to see it here.
-        </td>
-      </tr>
-    `;
+// TRANSACTIONS & DELETE FUNCTIONALITY
+function renderTransactionTable(container, list) {
+  if (!list.length) {
+    container.innerHTML = '<tr><td colspan="5" class="muted">No transactions found.</td></tr>';
     return;
   }
 
-  container.innerHTML = expenses.map(expense => {
-    const category = getCategory(expense.category);
-    const title = escapeHTML(expense.title);
-    const note = expense.note
-      ? `title="${escapeHTML(expense.note)}"`
-      : "";
-
+  container.innerHTML = list.map(item => {
+    const cat = CATEGORIES.find(c => c.name === item.category) || CATEGORIES[CATEGORIES.length - 1];
     return `
       <tr>
         <td>
           <div class="transaction-title">
-            <span class="transaction-icon"
-              style="color:${category.color}">
-              ${category.icon}
-            </span>
-            <span ${note}>${title}</span>
+            <span class="transaction-icon">${cat.icon}</span>
+            <div>
+              <div>${escapeHTML(item.title)}</div>
+              ${item.note ? `<small class="muted">${escapeHTML(item.note)}</small>` : ""}
+            </div>
           </div>
         </td>
-        <td>
-          <span class="category-tag">
-            ${escapeHTML(expense.category)}
-          </span>
-        </td>
-        <td>${formatDate(expense.date)}</td>
-        <td class="amount-cell">${money(expense.amount)}</td>
-        <td>
-          <button
-            class="delete-btn"
-            data-delete="${escapeHTML(expense.id)}"
-            aria-label="Delete ${title}"
-            title="Delete expense"
-          >×</button>
+        <td><span class="pill">${escapeHTML(item.category)}</span></td>
+        <td class="muted">${item.date}</td>
+        <td class="right"><strong>${money(item.amount)}</strong></td>
+        <td class="right">
+          <button class="delete-btn" onclick="deleteExpense('${item.id}')" title="Delete Expense">🗑️</button>
         </td>
       </tr>
     `;
   }).join("");
 }
 
-// Search and filter transaction history.
-function renderTransactions() {
-  const search = $("searchInput").value.trim().toLowerCase();
-  const category = $("categoryFilter").value;
+window.deleteExpense = function(id) {
+  if (confirm("Are you sure you want to delete this expense?")) {
+    state.expenses = state.expenses.filter(e => e.id !== id);
+    saveData();
+    updateAll();
+    showToast("Transaction deleted.");
+  }
+};
 
-  const expenses = selectedMonthExpenses()
-    .slice()
-    .sort(sortNewestFirst)
-    .filter(expense => {
-      const searchableText = [
-        expense.title,
-        expense.category,
-        expense.note || ""
-      ].join(" ").toLowerCase();
+function renderAllTransactions() {
+  let list = state.expenses.slice().sort((a, b) => b.date.localeCompare(a.date));
+  const query = $("searchInput").value.toLowerCase();
+  const cat = $("categoryFilter").value;
 
-      return searchableText.includes(search) &&
-        (category === "all" || expense.category === category);
-    });
+  if (cat !== "all") list = list.filter(e => e.category === cat);
+  if (query) list = list.filter(e => e.title.toLowerCase().includes(query) || (e.note && e.note.toLowerCase().includes(query)));
 
-  $("transactionCount").textContent =
-    `${expenses.length} transaction${expenses.length === 1 ? "" : "s"}`;
-
-  renderTransactionRows($("allTransactions"), expenses);
+  $("transactionCount").textContent = `${list.length} transaction(s)`;
+  renderTransactionTable($("allTransactions"), list);
 }
 
-// Generate basic spending insights.
+// SAVINGS GOALS FEATURE
+function renderSavings() {
+  const container = $("savingsGrid");
+  if (!state.savings.length) {
+    container.innerHTML = '<p class="muted">No savings goals set yet. Click "New Savings Goal" to start!</p>';
+    return;
+  }
+
+  container.innerHTML = state.savings.map(goal => {
+    const pct = Math.min(100, Math.round((goal.current / goal.target) * 100));
+    return `
+      <div class="goal-card">
+        <h3>🎯 ${escapeHTML(goal.title)}</h3>
+        ${goal.note ? `<p class="muted">${escapeHTML(goal.note)}</p>` : ""}
+        <div class="goal-amounts">
+          <span>${money(goal.current)} saved</span>
+          <span class="coffee-gold">Target: ${money(goal.target)}</span>
+        </div>
+        <div class="progress-track"><div style="width:${pct}%;background:var(--coffee-gold);height:100%"></div></div>
+        <div class="goal-actions">
+          <button class="secondary-btn" onclick="addFundsGoal('${goal.id}')">＋ Add Funds</button>
+          <button class="delete-btn" onclick="deleteGoal('${goal.id}')">🗑️ Delete Goal</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.addFundsGoal = function(id) {
+  const goal = state.savings.find(g => g.id === id);
+  if (!goal) return;
+  const amt = prompt(`Add funds to ${goal.title} (RM):`);
+  if (amt && !isNaN(amt) && Number(amt) > 0) {
+    goal.current += Number(amt);
+    saveData();
+    renderSavings();
+    showToast("Saved funds updated!");
+  }
+};
+
+window.deleteGoal = function(id) {
+  if (confirm("Delete this savings goal?")) {
+    state.savings = state.savings.filter(g => g.id !== id);
+    saveData();
+    renderSavings();
+    showToast("Savings goal removed.");
+  }
+};
+
+// INSIGHTS & AVERAGE SPENDING FEATURE
 function renderInsights() {
+  // Calculate average spending per month
+  const monthMap = {};
+  state.expenses.forEach(e => {
+    const m = e.date.slice(0, 7);
+    monthMap[m] = (monthMap[m] || 0) + Number(e.amount);
+  });
+
+  const months = Object.keys(monthMap);
+  const totalAllTime = Object.values(monthMap).reduce((a, b) => a + b, 0);
+  const avg = months.length > 0 ? totalAllTime / months.length : 0;
+
+  $("avgMonthlySpend").textContent = money(avg);
+  $("avgMonthlyCaption").textContent = `Calculated across ${months.length} active month(s)`;
+
+  // Current Month Top Category
   const expenses = selectedMonthExpenses();
-  const spent = totalExpenses(expenses);
+  const catTotals = {};
+  expenses.forEach(e => catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount));
+  
+  let topCat = "None", maxVal = 0;
+  Object.entries(catTotals).forEach(([k, v]) => {
+    if (v > maxVal) { maxVal = v; topCat = k; }
+  });
 
-  $("insightTotal").textContent = money(spent);
+  $("topCategory").textContent = maxVal > 0 ? topCat : "No spending recorded";
+  $("topCategoryCopy").textContent = maxVal > 0 ? `Highest spending at ${money(maxVal)}` : "Record expenses to see patterns.";
 
-  $("averageExpense").textContent = money(
-    expenses.length ? spent / expenses.length : 0
-  );
+  const avgPerTx = expenses.length > 0 ? expenses.reduce((s, e) => s + Number(e.amount), 0) / expenses.length : 0;
+  $("averageExpense").textContent = money(avgPerTx);
+}
 
-  const categoryTotals = CATEGORIES.map(category => ({
-    ...category,
-    amount: totalExpenses(
-      expenses.filter(expense => expense.category === category.name)
-    )
-  }))
-    .filter(category => category.amount > 0)
-    .sort((a, b) => b.amount - a.amount);
+// BARISTA RUSH MINI-GAME LOGIC
+const DRINKS = [
+  { title: "Classic Espresso", recipe: ["Espresso"] },
+  { title: "Iced Caramel Latte", recipe: ["Espresso", "Steamed Milk", "Caramel Syrup", "Ice Cubes"] },
+  { title: "Matcha Latte", recipe: ["Matcha", "Steamed Milk"] },
+  { title: "Iced Americano", recipe: ["Espresso", "Ice Cubes"] }
+];
 
-  if (!expenses.length) {
-    $("insightHeadline").textContent = "Start with one small step.";
-    $("insightCopy").textContent =
-      "Add some expenses to discover your spending patterns.";
+const ACHIEVEMENTS = [
+  { id: "first_brew", title: "First Shift", desc: "Earn at least 10 PTS in Barista Rush." },
+  { id: "barista_master", title: "Master Barista", desc: "Reach 50 total Tip points." }
+];
 
-    $("topCategory").textContent = "Not enough data yet";
-    $("topCategoryCopy").textContent =
-      "Record expenses to see where your money goes.";
+let currentOrder = null;
+let currentCup = [];
+let gameTimer = 30;
+let timerInterval = null;
 
-    return;
-  }
+function renderMinigame() {
+  $("gameScore").textContent = state.score;
 
-  const percentage = spent / state.budget * 100;
+  $("achievementsList").innerHTML = ACHIEVEMENTS.map(ach => {
+    const isUnlocked = state.unlockedAchieve.includes(ach.id);
+    return `
+      <div class="achieve-card ${isUnlocked ? "unlocked" : ""}">
+        <span>${isUnlocked ? "🏆" : "🔒"}</span>
+        <div>
+          <strong>${escapeHTML(ach.title)}</strong>
+          <div>${escapeHTML(ach.desc)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
 
-  if (percentage >= 100) {
-    $("insightHeadline").textContent = "You've used your full budget.";
-    $("insightCopy").textContent =
-      "Your recorded spending has reached or exceeded your budget. Review your transactions and priorities.";
-  } else if (percentage >= 75) {
-    $("insightHeadline").textContent = "You're approaching your limit.";
-    $("insightCopy").textContent =
-      "You've used a large part of your budget. Consider your priorities before making non-essential purchases.";
+document.querySelectorAll(".ing-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentCup.push(btn.dataset.ing);
+    $("cupContents").textContent = currentCup.join(", ");
+  });
+});
+
+$("clearCupBtn").addEventListener("click", () => {
+  currentCup = [];
+  $("cupContents").textContent = "Empty";
+});
+
+$("startShiftBtn").addEventListener("click", () => {
+  clearInterval(timerInterval);
+  gameTimer = 30;
+  currentCup = [];
+  $("cupContents").textContent = "Empty";
+  nextOrder();
+
+  timerInterval = setInterval(() => {
+    gameTimer--;
+    $("gameTimer").textContent = gameTimer;
+    if (gameTimer <= 0) {
+      clearInterval(timerInterval);
+      alert(`Shift finished! Your total Cafe Tips: ${state.score}`);
+    }
+  }, 1000);
+});
+
+function nextOrder() {
+  currentOrder = DRINKS[Math.floor(Math.random() * DRINKS.length)];
+  $("orderTitle").textContent = currentOrder.title;
+  $("orderRecipe").textContent = "Recipe: " + currentOrder.recipe.join(" + ");
+}
+
+$("serveDrinkBtn").addEventListener("click", () => {
+  if (!currentOrder) return alert("Click 'Start 30s Shift' first!");
+  
+  const isCorrect = currentOrder.recipe.length === currentCup.length && 
+    currentOrder.recipe.every((val, index) => val === currentCup[index]);
+
+  if (isCorrect) {
+    state.score += 10;
+    showToast("Perfect drink served! +10 PTS");
+    checkAchievements();
   } else {
-    $("insightHeadline").textContent = "You're building awareness.";
-    $("insightCopy").textContent =
-      "Tracking your spending is a useful first step. Keep recording expenses to understand your habits.";
+    showToast("Wrong recipe! Order wasted.");
   }
 
-  const top = categoryTotals[0];
+  currentCup = [];
+  $("cupContents").textContent = "Empty";
+  saveData();
+  renderMinigame();
+  nextOrder();
+});
 
-  $("topCategory").textContent = top.name;
-
-  $("topCategoryCopy").textContent =
-    `${Math.round(top.amount / spent * 100)}% of recorded spending this month (${money(top.amount)}).`;
-}
-
-function renderAll() {
-  renderDashboard();
-  renderTransactions();
-  renderInsights();
-}
-
-// Switch between the three app sections.
-function setView(view) {
-  document.querySelectorAll(".view").forEach(section => {
-    section.classList.remove("active");
-  });
-
-  const target = $(`${view}View`);
-
-  if (!target) return;
-
-  target.classList.add("active");
-
-  document.querySelectorAll(".nav-btn").forEach(button => {
-    button.classList.toggle("active", button.dataset.view === view);
-  });
-
-  const pageText = {
-    dashboard: [
-      "Your money, in focus.",
-      "A clearer view of what comes in and what goes out."
-    ],
-    transactions: [
-      "Know where it went.",
-      "Every expense tells a story. Keep yours organised."
-    ],
-    insights: [
-      "Make your money make sense.",
-      "Notice your patterns. Make more intentional choices."
-    ]
-  };
-
-  $("pageTitle").textContent = pageText[view][0];
-  $("pageSubtitle").textContent = pageText[view][1];
-
-  if (view === "transactions") renderTransactions();
-  if (view === "insights") renderInsights();
-}
-
-// Open and close forms.
-function openExpenseDialog() {
-  $("expenseForm").reset();
-  $("expenseDate").value = localDate();
-  $("formError").textContent = "";
-  $("expenseDialog").showModal();
-  $("expenseTitle").focus();
-}
-
-function closeDialog(id) {
-  const dialog = $(id);
-
-  if (dialog.open) dialog.close();
-}
-
-// Add a new expense.
-function handleAddExpense(event) {
-  event.preventDefault();
-
-  const title = $("expenseTitle").value.trim();
-  const amount = Number($("expenseAmount").value);
-  const date = $("expenseDate").value;
-  const category = $("expenseCategory").value;
-  const note = $("expenseNote").value.trim();
-
-  const error = $("formError");
-  error.textContent = "";
-
-  if (!title) {
-    error.textContent = "Please enter an expense name.";
-    return;
+function checkAchievements() {
+  if (state.score >= 10 && !state.unlockedAchieve.includes("first_brew")) {
+    state.unlockedAchieve.push("first_brew");
+    showToast("🏆 Achievement Unlocked: First Shift!");
   }
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    error.textContent = "Enter an amount greater than RM 0.";
-    return;
+  if (state.score >= 50 && !state.unlockedAchieve.includes("barista_master")) {
+    state.unlockedAchieve.push("barista_master");
+    showToast("🏆 Achievement Unlocked: Master Barista!");
   }
+}
 
-  if (amount > 1000000) {
-    error.textContent = "Please enter an amount below RM 1,000,000.";
-    return;
-  }
+// MODAL CONTROLS & FORM SUBMISSIONS
+$("addExpenseBtn").onclick = () => $("expenseDialog").showModal();
+$("closeExpense").onclick = () => $("expenseDialog").close();
+$("cancelExpense").onclick = () => $("expenseDialog").close();
 
-  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    error.textContent = "Please choose a valid date.";
-    return;
-  }
+$("editBudgetBtn").onclick = () => {
+  $("budgetInput").value = state.budget;
+  $("budgetDialog").showModal();
+};
+$("closeBudget").onclick = () => $("budgetDialog").close();
+$("cancelBudget").onclick = () => $("budgetDialog").close();
 
+$("addGoalBtn").onclick = () => $("goalDialog").showModal();
+$("closeGoal").onclick = () => $("goalDialog").close();
+$("cancelGoal").onclick = () => $("goalDialog").close();
+
+$("expenseForm").onsubmit = e => {
+  e.preventDefault();
   const expense = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    title,
-    amount: Math.round(amount * 100) / 100,
-    date,
-    category,
-    note
+    id: "exp_" + Date.now(),
+    title: $("expenseTitle").value.trim(),
+    amount: Number($("expenseAmount").value),
+    date: $("expenseDate").value,
+    category: $("expenseCategory").value,
+    note: $("expenseNote").value.trim()
   };
 
   state.expenses.push(expense);
+  saveData();
+  updateAll();
+  $("expenseForm").reset();
+  $("expenseDialog").close();
+  showToast("Expense added!");
+};
 
-  if (!saveData()) {
-    state.expenses.pop();
-    return;
-  }
+$("budgetForm").onsubmit = e => {
+  e.preventDefault();
+  state.budget = Number($("budgetInput").value);
+  saveData();
+  updateAll();
+  $("budgetDialog").close();
+  showToast("Budget updated!");
+};
 
-  // Show the month containing the newly added expense.
-  $("monthFilter").value = date.slice(0, 7);
+$("goalForm").onsubmit = e => {
+  e.preventDefault();
+  state.savings.push({
+    id: "goal_" + Date.now(),
+    title: $("goalTitle").value.trim(),
+    target: Number($("goalTarget").value),
+    current: Number($("goalCurrent").value) || 0,
+    note: $("goalNote").value.trim()
+  });
 
-  closeDialog("expenseDialog");
-  renderAll();
-  showToast("Expense added successfully.");
+  saveData();
+  renderSavings();
+  $("goalForm").reset();
+  $("goalDialog").close();
+  showToast("Savings Goal created!");
+};
+
+$("monthFilter").value = currentMonth();
+$("monthFilter").onchange = () => updateAll();
+$("searchInput").oninput = () => renderAllTransactions();
+$("categoryFilter").onchange = () => renderAllTransactions();
+
+function updateAll() {
+  renderDashboard();
+  renderAllTransactions();
+  renderSavings();
+  renderInsights();
+  renderMinigame();
 }
 
-// Delete an expense after confirmation.
-function deleteExpense(id) {
-  const expense = state.expenses.find(item => item.id === id);
-
-  if (!expense) return;
-
-  const confirmed = window.confirm(
-    `Delete "${expense.title}"? This cannot be undone.`
-  );
-
-  if (!confirmed) return;
-
-  const previousExpenses = state.expenses;
-
-  state.expenses = state.expenses.filter(item => item.id !== id);
-
-  if (!saveData()) {
-    state.expenses = previousExpenses;
-    return;
-  }
-
-  renderAll();
-  showToast("Expense deleted.");
-}
-
-// Update the monthly budget.
-function handleBudgetSave(event) {
-  event.preventDefault();
-
-  const value = Number($("budgetInput").value);
-
-  if (!Number.isFinite(value) || value < 1 || value > 1000000) {
-    showToast("Enter a budget between RM 1 and RM 1,000,000.");
-    return;
-  }
-
-  const previousBudget = state.budget;
-
-  state.budget = Math.round(value * 100) / 100;
-
-  if (!saveData()) {
-    state.budget = previousBudget;
-    return;
-  }
-
-  closeDialog("budgetDialog");
-  renderAll();
-  showToast("Monthly budget updated.");
-}
-
-// Start the app.
-function init() {
-  $("monthFilter").value = currentMonth();
-  $("year").textContent = new Date().getFullYear();
-
-  setupCategories();
-  renderAll();
-
-  $("addExpenseBtn").addEventListener("click", openExpenseDialog);
-
-  $("closeExpense").addEventListener("click", () => {
-    closeDialog("expenseDialog");
-  });
-
-  $("cancelExpense").addEventListener("click", () => {
-    closeDialog("expenseDialog");
-  });
-
-  $("expenseForm").addEventListener("submit", handleAddExpense);
-
-  $("monthFilter").addEventListener("change", renderAll);
-
-  $("editBudgetBtn").addEventListener("click", () => {
-    $("budgetInput").value = state.budget;
-    $("budgetDialog").showModal();
-  });
-
-  $("closeBudget").addEventListener("click", () => {
-    closeDialog("budgetDialog");
-  });
-
-  $("cancelBudget").addEventListener("click", () => {
-    closeDialog("budgetDialog");
-  });
-
-  $("budgetForm").addEventListener("submit", handleBudgetSave);
-
-  $("searchInput").addEventListener("input", renderTransactions);
-
-  $("categoryFilter").addEventListener("change", renderTransactions);
-
-  document.querySelectorAll(".nav-btn").forEach(button => {
-    button.addEventListener("click", () => {
-      setView(button.dataset.view);
-    });
-  });
-
-  document.querySelectorAll("[data-goto]").forEach(button => {
-    button.addEventListener("click", () => {
-      setView(button.dataset.goto);
-    });
-  });
-
-  document.addEventListener("click", event => {
-    const deleteButton = event.target.closest("[data-delete]");
-
-    if (deleteButton) {
-      deleteExpense(deleteButton.dataset.delete);
-    }
-  });
-
-  // Close dialogs when the user clicks outside the form.
-  ["expenseDialog", "budgetDialog"].forEach(id => {
-    $(id).addEventListener("click", event => {
-      if (event.target === $(id)) closeDialog(id);
-    });
-  });
-}
-
-document.addEventListener("DOMContentLoaded", init);
+// INIT
+$("expenseDate").value = localDate();
+$("year").textContent = new Date().getFullYear();
+setupCategories();
+updateAll();
