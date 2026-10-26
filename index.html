@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10131d">
+  <meta name="description" content="Track expenses and spend wisely with EX-SPEND.">
+  <title>EX-SPEND — Spend with Intention</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#">
+      <span class="brand-icon">EX</span>
+      <span>EX<span class="blue">SPEND</span><small>BY EX INITIO</small></span>
+    </a>
+
+    <p class="nav-label">WORKSPACE</p>
+    <button class="nav-btn active" data-view="dashboard">▦ &nbsp; Dashboard</button>
+    <button class="nav-btn" data-view="transactions">↔ &nbsp; Transactions</button>
+    <button class="nav-btn" data-view="insights">◷ &nbsp; Insights</button>
+
+    <div class="sidebar-bottom">
+      <div class="tip-box">
+        <span class="blue">YOUR MONEY, YOUR MOVE</span>
+        <p>Small choices today can make a big difference tomorrow.</p>
+      </div>
+      <small class="privacy">● Your data stays on this device</small>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PERSONAL FINANCE / STUDENT EDITION</p>
+        <h1 id="pageTitle">Your money, in focus.</h1>
+        <p class="muted" id="pageSubtitle">A clearer view of what comes in and what goes out.</p>
+      </div>
+      <div class="top-actions">
+        <label class="month-control">MONTH
+          <input type="month" id="monthFilter">
+        </label>
+        <button class="primary-btn" id="addExpenseBtn">＋ Add expense</button>
+      </div>
+    </header>
+
+    <section id="dashboardView" class="view active">
+      <div class="hero">
+        <div>
+          <p class="eyebrow blue">YOUR FINANCIAL CHECK-IN</p>
+          <h2>Spend with intention<span class="blue">.</span></h2>
+          <p>Know your numbers. Make your next move count.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-orbit"></div>
+          <div class="hero-core">RM</div>
+          <span class="hero-arrow">↗</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <article class="stat-card">
+          <div class="stat-heading"><span>TOTAL SPENT</span><span class="stat-icon blue-bg">↗</span></div>
+          <h2 id="totalSpent">RM 0.00</h2>
+          <p class="muted">For the selected month</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading"><span>BUDGET LEFT</span><span class="stat-icon green-bg">⌁</span></div>
+          <h2 id="budgetLeft">RM 300.00</h2>
+          <p class="muted" id="leftCaption">Room to make it count</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading"><span>MONTHLY BUDGET</span><span class="stat-icon purple-bg">◎</span></div>
+          <h2 id="budgetAmount">RM 300.00</h2>
+          <button class="text-btn" id="editBudgetBtn">Edit monthly budget ↗</button>
+        </article>
+      </div>
+
+      <div class="content-grid">
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">BUDGET TRACKER</p><h3>You're in control.</h3></div>
+            <span class="pill" id="budgetStatus">On track</span>
+          </div>
+          <div class="percentage-row">
+            <strong id="budgetPercent">0%</strong>
+            <span class="muted">of your budget used</span>
+          </div>
+          <div class="progress-track"><div id="budgetProgress"></div></div>
+          <div class="progress-labels"><span>RM 0</span><span id="budgetMaximum">RM 300</span></div>
+          <div class="budget-message" id="budgetMessage">✦ You're starting fresh. Make every ringgit count.</div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">WHERE IT GOES</p><h3>Spending breakdown</h3></div>
+            <span class="decoration">◌</span>
+          </div>
+          <div id="categoryBreakdown" class="category-list">
+            <p class="empty">Your categories will appear here once you add expenses.</p>
+          </div>
+        </article>
+      </div>
+
+      <article class="panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">THE LATEST</p><h3>Recent transactions</h3></div>
+          <button class="text-btn" data-goto="transactions">View all ↗</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th class="right">AMOUNT</th><th></th></tr></thead>
+            <tbody id="recentTransactions"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section id="transactionsView" class="view">
+      <div class="section-heading">
+        <div><p class="eyebrow">YOUR RECORDS</p><h2>Every ringgit, accounted for.</h2></div>
+        <div class="filters">
+          <input id="searchInput" type="search" placeholder="Search expenses..." aria-label="Search expenses">
+          <select id="categoryFilter" aria-label="Filter by category">
+            <option value="all">All categories</option>
+          </select>
+        </div>
+      </div>
+      <article class="panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">TRANSACTION HISTORY</p><h3 id="transactionCount">0 transactions</h3></div>
+          <span class="muted small">Newest first</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>TRANSACTION</th><th>CATEGORY</th><th>DATE</th><th class="right">AMOUNT</th><th></th></tr></thead>
+            <tbody id="allTransactions"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section id="insightsView" class="view">
+      <div class="section-heading">
+        <div><p class="eyebrow">SMARTER HABITS</p><h2>Patterns worth noticing.</h2>
+          <p class="muted">Insights based on the expenses you've recorded.</p>
+        </div>
+      </div>
+      <div class="insights-grid">
+        <article class="panel feature-panel">
+          <p class="eyebrow">YOUR SPENDING SNAPSHOT</p>
+          <h2 id="insightHeadline">Start with one small step.</h2>
+          <p class="muted" id="insightCopy">Add some expenses to discover your spending patterns.</p>
+          <div class="insight-total"><strong id="insightTotal">RM 0.00</strong><small>spent this month</small></div>
+        </article>
+        <article class="panel">
+          <p class="eyebrow">TOP CATEGORY</p>
+          <h3 id="topCategory">Not enough data yet</h3>
+          <p class="muted" id="topCategoryCopy">Record expenses to see where your money goes.</p>
+        </article>
+        <article class="panel">
+          <p class="eyebrow">AVERAGE PER TRANSACTION</p>
+          <h3 id="averageExpense">RM 0.00</h3>
+          <p class="muted">Average amount for the selected month.</p>
+        </article>
+        <article class="panel">
+          <p class="eyebrow">A SMALL REMINDER</p>
+          <h3>Pause before you pay.</h3>
+          <p class="muted">Before buying something non-essential, consider whether it fits your priorities.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <span>EX-SPEND © <span id="year"></span> EX INITIO</span>
+      <span>FROM THE BEGINNING, WE BUILD.</span>
+    </footer>
+  </main>
+
+  <dialog id="expenseDialog" class="modal">
+    <form id="expenseForm">
+      <div class="modal-heading">
+        <div><p class="eyebrow">NEW TRANSACTION</p><h2>Add an expense</h2></div>
+        <button type="button" class="close-btn" id="closeExpense">×</button>
+      </div>
+
+      <label class="field">What did you spend on?
+        <input id="expenseTitle" maxlength="70" placeholder="e.g. Lunch at the canteen" required>
+      </label>
+
+      <div class="form-grid">
+        <label class="field">Amount (RM)
+          <input id="expenseAmount" type="number" min="0.01" max="1000000" step="0.01" placeholder="0.00" required>
+        </label>
+        <label class="field">Date
+          <input id="expenseDate" type="date" required>
+        </label>
+      </div>
+
+      <label class="field">Category
+        <select id="expenseCategory" required></select>
+      </label>
+
+      <label class="field">Note <span class="muted">(optional)</span>
+        <textarea id="expenseNote" rows="2" maxlength="180" placeholder="Add a short note..."></textarea>
+      </label>
+
+      <p class="error" id="formError"></p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" id="cancelExpense">Cancel</button>
+        <button type="submit" class="primary-btn">Save expense ↗</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="budgetDialog" class="modal">
+    <form id="budgetForm">
+      <div class="modal-heading">
+        <div><p class="eyebrow">YOUR LIMIT</p><h2>Set your budget</h2></div>
+        <button type="button" class="close-btn" id="closeBudget">×</button>
+      </div>
+      <p class="muted">Choose a monthly spending limit that works for you.</p>
+      <label class="field">Monthly budget (RM)
+        <input id="budgetInput" type="number" min="1" max="1000000" step="0.01" required>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="secondary-btn" id="cancelBudget">Cancel</button>
+        <button type="submit" class="primary-btn">Save budget ↗</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>
