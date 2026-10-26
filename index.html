@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#130d0a">
-  <meta name="description" content="Track student expenses, savings goals, and play Barista Rush.">
   <title>EX-SPEND — Cafe Student Edition</title>
   <style>
     :root {
@@ -18,16 +17,17 @@
       --coffee-light: #faedcd;
       --green: #81b29a;
       --red: #e07a5f;
-      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       margin: 0;
+      padding-bottom: 70px; /* Space for bottom mobile nav */
       background: var(--bg);
       background-image: radial-gradient(#33231a 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-size: 20px 20px;
       color: var(--text);
       font-family: var(--font);
       font-size: 14px;
@@ -36,12 +36,7 @@
     button, input, select, textarea { font: inherit; }
     button { cursor: pointer; }
 
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-      outline: 2px solid var(--coffee-gold);
-      outline-offset: 2px;
-    }
-
-    /* DESKTOP SIDEBAR & MOBILE NAVIGATION TOP-BAR */
+    /* DESKTOP SIDEBAR */
     .sidebar {
       position: fixed;
       inset: 0 auto 0 0;
@@ -62,8 +57,7 @@
       text-decoration: none;
       font-weight: 800;
       font-size: 16px;
-      letter-spacing: 1px;
-      margin: 0 4px 28px;
+      margin-bottom: 24px;
     }
 
     .brand-icon {
@@ -75,89 +69,40 @@
       color: #1a0f0a;
       border-radius: 10px;
       font-size: 18px;
-      flex-shrink: 0;
     }
 
-    .brand small {
-      display: block;
-      margin-top: 2px;
-      color: var(--muted);
-      font-size: 8px;
-      letter-spacing: 1px;
-    }
-
+    .brand small { display: block; color: var(--muted); font-size: 8px; }
     .coffee-gold { color: var(--coffee-gold); }
+    .eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
 
-    .nav-label, .eyebrow {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: var(--muted);
-    }
-
-    .nav-label { margin: 0 8px 12px; }
-
-    .nav-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .nav-group { display: flex; flex-direction: column; gap: 6px; }
 
     .nav-btn {
       width: 100%;
       text-align: left;
-      padding: 11px 12px;
+      padding: 12px;
       color: var(--muted);
       background: transparent;
       border: 0;
       border-radius: 8px;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .nav-btn:hover {
-      background: #251a14;
-      color: var(--text);
+      font-weight: 600;
     }
 
     .nav-btn.active {
       color: #130d0a;
       background: var(--coffee-gold);
-      font-weight: bold;
+      font-weight: 700;
     }
 
     .sidebar-bottom { margin-top: auto; }
+    .tip-box { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: #231913; font-size: 10px; }
+    .tip-box p { color: var(--muted); margin: 4px 0 0; font-size: 11px; }
 
-    .tip-box {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #231913;
-      font-size: 9px;
-      letter-spacing: 1px;
-      font-weight: bold;
-    }
-
-    .tip-box p {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: normal;
-      margin: 6px 0 0;
-      line-height: 1.4;
-    }
-
-    .privacy {
-      display: block;
-      margin: 14px 3px 0;
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    /* MAIN CONTENT AREA */
+    /* MAIN CONTAINER */
     main {
       margin-left: 230px;
-      max-width: 1600px;
-      padding: 28px clamp(16px, 3vw, 40px);
+      max-width: 1400px;
+      padding: 24px 20px;
     }
 
     .topbar, .top-actions, .panel-heading, .stat-heading, .percentage-row,
@@ -168,24 +113,12 @@
       gap: 12px;
     }
 
-    .topbar {
-      align-items: flex-end;
-      margin-bottom: 24px;
-    }
-
+    .topbar { align-items: flex-end; margin-bottom: 20px; }
     h1, h2, h3, p { margin-top: 0; }
-    h1 { margin-bottom: 6px; font-size: clamp(22px, 3vw, 30px); }
-    h2, h3 { letter-spacing: -0.5px; }
+    h1 { margin-bottom: 4px; font-size: 26px; }
     .muted { color: var(--muted); }
 
-    .month-control {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      color: var(--muted);
-      font-size: 9px;
-      font-weight: bold;
-    }
+    .month-control { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 9px; font-weight: bold; }
 
     input, select, textarea {
       padding: 10px 12px;
@@ -193,116 +126,53 @@
       border-radius: 8px;
       background: #150e0a;
       color: var(--text);
+      width: 100%;
     }
 
-    .month-control input {
-      width: 140px;
-      color-scheme: dark;
-    }
+    .month-control input { width: 140px; color-scheme: dark; }
 
     .primary-btn, .secondary-btn, .gold-btn {
-      padding: 10px 15px;
+      padding: 10px 14px;
       border-radius: 8px;
       font-weight: bold;
       font-size: 12px;
+      border: 0;
       white-space: nowrap;
     }
 
-    .primary-btn {
-      color: #1a0f0a;
-      background: var(--coffee-gold);
-      border: 1px solid var(--coffee-gold);
-    }
-
-    .primary-btn:hover { background: #e2b485; }
-
-    .secondary-btn {
-      color: var(--text);
-      background: #33231a;
-      border: 1px solid var(--border);
-    }
-
-    .secondary-btn:hover { background: #422e22; }
-
-    .gold-btn {
-      background: #f4a261;
-      color: #1a0f0a;
-      border: 0;
-    }
+    .primary-btn { color: #1a0f0a; background: var(--coffee-gold); }
+    .secondary-btn { color: var(--text); background: #33231a; border: 1px solid var(--border); }
+    .gold-btn { background: #f4a261; color: #1a0f0a; }
 
     /* CAFE HERO BANNER */
     .hero {
-      padding: 22px 24px;
+      padding: 20px;
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       background: linear-gradient(135deg, #2a1c14, #1a100a);
     }
 
-    .hero h2 { font-size: clamp(20px, 3vw, 26px); margin: 6px 0; }
-
-    .hero-art {
-      position: relative;
-      font-size: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 70px;
-      height: 70px;
-    }
-
-    .steam {
-      position: absolute;
-      font-size: 16px;
-      opacity: 0.6;
-      animation: floatSteam 3s infinite ease-in-out;
-    }
-
-    .steam-1 { top: -10px; left: 15px; animation-delay: 0s; }
-    .steam-2 { top: -15px; right: 15px; animation-delay: 1.5s; }
-
-    @keyframes floatSteam {
-      0% { transform: translateY(0) scale(0.8); opacity: 0; }
-      50% { opacity: 0.7; }
-      100% { transform: translateY(-18px) scale(1.2); opacity: 0; }
-    }
+    .hero h2 { font-size: 22px; margin: 4px 0; }
 
     /* STATS CARDS */
     .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
-      margin: 18px 0;
+      margin: 16px 0;
     }
 
     .stat-card, .panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 18px;
+      padding: 16px;
     }
 
-    .stat-heading {
-      color: var(--muted);
-      font-size: 9px;
-      font-weight: bold;
-    }
-
-    .stat-icon {
-      display: grid;
-      place-items: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-    }
-
-    .red-bg { color: var(--red); background: rgba(224, 122, 95, 0.15); }
-    .green-bg { color: var(--green); background: rgba(129, 178, 154, 0.15); }
-    .gold-bg { color: var(--coffee-gold); background: rgba(212, 163, 115, 0.15); }
-
-    .stat-card h2 { margin: 14px 0 4px; font-size: clamp(18px, 2vw, 24px); }
+    .stat-card h2 { margin: 10px 0 4px; font-size: 22px; }
 
     .text-btn {
       padding: 0;
@@ -333,254 +203,95 @@
     .pill.warning { color: #f4a261; background: rgba(244, 162, 97, 0.15); }
     .pill.danger { color: var(--red); background: rgba(224, 122, 95, 0.15); }
 
-    .percentage-row {
-      justify-content: flex-start;
-      align-items: baseline;
-      margin: 12px 0 6px;
-    }
+    .percentage-row { justify-content: flex-start; align-items: baseline; margin: 10px 0 6px; }
+    .percentage-row strong { font-size: 24px; }
 
-    .percentage-row strong { font-size: 26px; }
-
-    .progress-track {
-      height: 8px;
-      border-radius: 10px;
-      background: #150e0a;
-      overflow: hidden;
-    }
-
-    #budgetProgress {
-      height: 100%;
-      width: 0%;
-      background: var(--coffee-gold);
-      transition: width 0.3s;
-    }
-
+    .progress-track { height: 8px; border-radius: 10px; background: #150e0a; overflow: hidden; }
+    #budgetProgress { height: 100%; width: 0%; background: var(--coffee-gold); transition: width 0.3s; }
     #budgetProgress.warning { background: #f4a261; }
     #budgetProgress.danger { background: var(--red); }
 
     .progress-labels { margin-top: 6px; color: var(--muted); font-size: 10px; }
+    .budget-message { margin-top: 14px; padding: 10px; border-radius: 8px; background: #1e1510; color: var(--muted); font-size: 11px; }
 
-    .budget-message {
-      margin-top: 16px;
-      padding: 10px;
-      border-radius: 8px;
-      background: #1e1510;
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .category-list { display: flex; flex-direction: column; gap: 12px; }
-
-    .category-row {
-      display: grid;
-      grid-template-columns: 110px 1fr auto;
-      align-items: center;
-      gap: 10px;
-      font-size: 11px;
-    }
-
-    .category-track {
-      height: 6px;
-      background: #150e0a;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
+    .category-list { display: flex; flex-direction: column; gap: 10px; }
+    .category-row { display: grid; grid-template-columns: 100px 1fr auto; align-items: center; gap: 8px; font-size: 11px; }
+    .category-track { height: 6px; background: #150e0a; border-radius: 10px; overflow: hidden; }
     .category-track span { display: block; height: 100%; }
 
-    /* TABLES & DELETION */
+    /* TABLES */
     .table-wrap { overflow-x: auto; }
-
     table { width: 100%; border-collapse: collapse; text-align: left; }
-
-    th {
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 9px;
-      letter-spacing: 1px;
-    }
-
-    td {
-      padding: 11px 8px;
-      border-bottom: 1px solid #2e2018;
-      font-size: 12px;
-    }
-
+    th { padding: 8px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 9px; }
+    td { padding: 10px 8px; border-bottom: 1px solid #2e2018; font-size: 12px; }
     .right { text-align: right; }
 
     .transaction-title { display: flex; align-items: center; gap: 8px; font-weight: bold; }
+    .transaction-icon { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; background: #33231a; flex-shrink: 0; }
 
-    .transaction-icon {
-      display: grid;
-      place-items: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-      background: #33231a;
-      flex-shrink: 0;
-    }
-
-    .delete-btn {
-      background: transparent;
-      border: 0;
-      color: var(--muted);
-      padding: 4px 6px;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
+    .delete-btn { background: transparent; border: 0; color: var(--muted); padding: 4px 6px; border-radius: 4px; font-size: 14px; }
     .delete-btn:hover { color: var(--red); background: rgba(224, 122, 95, 0.15); }
 
     /* SAVINGS GRID */
-    .savings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 12px;
-    }
-
-    .goal-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .goal-card h3 { margin: 0; font-size: 17px; }
-
-    .goal-amounts {
-      display: flex;
-      justify-content: space-between;
-      font-weight: bold;
-      font-size: 12px;
-    }
-
+    .savings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .goal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .goal-card h3 { margin: 0; font-size: 16px; }
+    .goal-amounts { display: flex; justify-content: space-between; font-weight: bold; font-size: 12px; }
     .goal-actions { display: flex; gap: 8px; margin-top: 4px; }
 
     /* INSIGHTS */
-    .insights-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
+    .insights-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .feature-panel { grid-row: span 2; background: linear-gradient(145deg, #2e1f17, #1c130d); border: 1px solid var(--coffee-gold); }
+    .insight-total { margin: 12px 0; padding: 10px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
+    .insight-total strong { font-size: 26px; color: var(--coffee-gold); }
 
-    .feature-panel {
-      grid-row: span 2;
-      background: linear-gradient(145deg, #2e1f17, #1c130d);
-      border: 1px solid var(--coffee-gold);
-    }
-
-    .insight-total {
-      margin: 16px 0;
-      padding: 12px 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .insight-total strong { font-size: 28px; color: var(--coffee-gold); }
-    .small-tip { color: var(--coffee-light); font-size: 11px; line-height: 1.4; }
-
-    /* BARISTA RUSH MINIGAME */
-    .game-score-badge {
-      background: #33231a;
-      border: 1px solid var(--coffee-gold);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 11px;
-    }
-
-    .game-layout {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 12px;
-    }
-
-    .order-box {
-      background: #18100b;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1px dashed var(--coffee-gold);
-      margin-bottom: 12px;
-    }
-
+    /* MINIGAME */
+    .game-score-badge { background: #33231a; border: 1px solid var(--coffee-gold); padding: 6px 12px; border-radius: 20px; font-size: 11px; }
+    .game-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px; }
+    .order-box { background: #18100b; padding: 12px; border-radius: 10px; border: 1px dashed var(--coffee-gold); margin-bottom: 12px; }
     .ingredient-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-
-    .ing-btn {
-      background: #33231a;
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-    }
-
-    .ing-btn:hover { background: var(--coffee-gold); color: #1a0f0a; }
-
-    .current-cup {
-      background: #150e0a;
-      padding: 8px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-      font-size: 11px;
-    }
-
+    .ing-btn { background: #33231a; color: var(--text); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 11px; }
+    .ing-btn:active { background: var(--coffee-gold); color: #1a0f0a; }
+    .current-cup { background: #150e0a; padding: 8px; border-radius: 6px; margin-bottom: 12px; font-size: 11px; }
     .game-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .timer-display { margin-top: 12px; font-weight: bold; color: var(--coffee-gold); }
-
-    .achievements-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-
-    .achieve-card {
-      padding: 8px;
-      border-radius: 8px;
-      background: #1d140e;
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-    }
-
-    .achieve-card.unlocked {
-      border-color: var(--coffee-gold);
-      background: rgba(212, 163, 115, 0.1);
-    }
+    .timer-display { margin-top: 10px; font-weight: bold; color: var(--coffee-gold); }
+    .achievements-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .achieve-card { padding: 8px; border-radius: 8px; background: #1d140e; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .achieve-card.unlocked { border-color: var(--coffee-gold); background: rgba(212, 163, 115, 0.1); }
 
     .view { display: none; }
     .view.active { display: block; }
 
-    .modal {
-      width: min(450px, calc(100% - 30px));
-      padding: 20px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text);
-    }
-
-    .modal::backdrop {
-      background: rgba(15, 10, 7, 0.85);
+    /* BULLETPROOF CUSTOM OVERLAY MODALS FOR MOBILE */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 6, 4, 0.85);
       backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 16px;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      margin-bottom: 12px;
-      font-size: 11px;
-      font-weight: bold;
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      width: 100%;
+      max-width: 420px;
     }
 
+    .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; font-size: 11px; font-weight: bold; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
     .toast {
       position: fixed;
-      bottom: 20px;
+      bottom: 75px;
       left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: #33231a;
@@ -592,87 +303,70 @@
       opacity: 0;
       pointer-events: none;
       transition: all 0.2s;
-      z-index: 1000;
+      z-index: 3000;
     }
 
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    footer {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 30px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 8px;
-    }
-
-    /* MOBILE NAVIGATION FIXED TOP BAR */
+    /* MOBILE NATIVE-LIKE BOTTOM NAVBAR */
     @media (max-width: 768px) {
       .sidebar {
-        position: sticky;
-        top: 0;
+        position: fixed;
+        inset: auto 0 0 0;
         width: 100%;
-        height: auto;
-        padding: 10px 12px;
+        height: 60px;
+        padding: 0;
         flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        background: var(--sidebar);
-        overflow-x: auto;
+        border-right: 0;
+        border-top: 1px solid var(--border);
+        background: #130d0a;
+        z-index: 1000;
       }
 
-      .nav-label, .sidebar-bottom, .brand small { display: none; }
-
-      .brand {
-        margin: 0 10px 0 0;
-        flex-shrink: 0;
-      }
+      .brand, .nav-label, .sidebar-bottom { display: none; }
 
       .nav-group {
+        display: flex;
         flex-direction: row;
-        overflow-x: auto;
-        gap: 6px;
         width: 100%;
+        height: 100%;
+        justify-content: space-around;
+        align-items: center;
+        gap: 0;
       }
 
       .nav-btn {
-        width: auto;
-        padding: 8px 12px;
+        flex: 1;
+        height: 100%;
+        padding: 4px;
         margin: 0;
-        font-size: 12px;
-        flex-shrink: 0;
-      }
-
-      main {
-        margin-left: 0;
-        padding: 16px 12px;
-      }
-
-      .topbar {
+        border-radius: 0;
+        text-align: center;
+        font-size: 10px;
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
       }
 
-      .top-actions {
-        width: 100%;
-        justify-content: space-between;
+      .nav-btn.active {
+        background: #251a14;
+        color: var(--coffee-gold);
+        border-top: 2px solid var(--coffee-gold);
       }
 
-      .stats, .content-grid, .insights-grid, .game-layout {
-        grid-template-columns: 1fr;
-      }
-
+      main { margin-left: 0; padding: 16px 12px; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .top-actions { width: 100%; justify-content: space-between; }
+      .stats, .content-grid, .insights-grid, .game-layout { grid-template-columns: 1fr; }
       .feature-panel { grid-row: auto; }
     }
   </style>
 </head>
 <body>
 
-  <!-- MOBILE RESPONSIVE SIDEBAR / TOPNAV -->
+  <!-- MOBILE BOTTOM / DESKTOP SIDEBAR NAV -->
   <aside class="sidebar">
     <a class="brand" href="#">
       <span class="brand-icon">☕</span>
@@ -682,29 +376,26 @@
     <p class="nav-label">CAFE WORKSPACE</p>
 
     <div class="nav-group">
-      <button class="nav-btn active" data-view="dashboard">▦ Dashboard</button>
-      <button class="nav-btn" data-view="transactions">↔ Transactions</button>
-      <button class="nav-btn" data-view="savings">🎯 Savings Goals</button>
-      <button class="nav-btn" data-view="insights">◷ Insights & Avg</button>
-      <button class="nav-btn" data-view="minigame">🎮 Barista Rush</button>
+      <button class="nav-btn active" data-view="dashboard">▦<span>Dashboard</span></button>
+      <button class="nav-btn" data-view="transactions">↔<span>Records</span></button>
+      <button class="nav-btn" data-view="savings">🎯<span>Savings</span></button>
+      <button class="nav-btn" data-view="insights">◷<span>Insights</span></button>
+      <button class="nav-btn" data-view="minigame">🎮<span>Game</span></button>
     </div>
 
     <div class="sidebar-bottom">
       <div class="tip-box">
-        <span class="coffee-gold">DAILY BREW WISDOM</span>
-        <p>Small daily savings build a solid financial cushion tomorrow!</p>
+        <span class="coffee-gold">DAILY BREW</span>
+        <p>Small daily savings build a solid financial cushion!</p>
       </div>
-      <small class="privacy">● Data stored securely on device</small>
     </div>
   </aside>
 
-  <!-- MAIN CONTAINER -->
   <main>
     <header class="topbar">
       <div>
         <p class="eyebrow">STUDENT FINANCE / CAFE EDITION</p>
         <h1 id="pageTitle">Your budget, fresh & brewed.</h1>
-        <p class="muted" id="pageSubtitle">Track expenses, plan savings goals, and enjoy your finances.</p>
       </div>
       <div class="top-actions">
         <label class="month-control">FILTER MONTH
@@ -720,30 +411,26 @@
         <div>
           <p class="eyebrow coffee-gold">CAFE FINANCIAL CHECK-IN</p>
           <h2>Spend with intention<span class="coffee-gold">.</span></h2>
-          <p>Keep your student spending cozy, organized, and under control.</p>
+          <p class="muted">Keep your spending cozy and under control.</p>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="steam steam-1">☁</div>
-          <div class="steam steam-2">☁</div>
-          <div class="hero-core">☕</div>
-        </div>
+        <div style="font-size:36px;">☕</div>
       </div>
 
       <div class="stats">
         <article class="stat-card">
-          <div class="stat-heading"><span>MONTHLY SPENT</span><span class="stat-icon red-bg">↗</span></div>
+          <div class="stat-heading">MONTHLY SPENT</div>
           <h2 id="totalSpent">RM 0.00</h2>
           <p class="muted">Total for selected month</p>
         </article>
         <article class="stat-card">
-          <div class="stat-heading"><span>BUDGET REMAINING</span><span class="stat-icon green-bg">⌁</span></div>
+          <div class="stat-heading">BUDGET REMAINING</div>
           <h2 id="budgetLeft">RM 300.00</h2>
           <p class="muted" id="leftCaption">Room to make it count</p>
         </article>
         <article class="stat-card">
-          <div class="stat-heading"><span>MONTHLY BUDGET</span><span class="stat-icon gold-bg">◎</span></div>
+          <div class="stat-heading">MONTHLY BUDGET</div>
           <h2 id="budgetAmount">RM 300.00</h2>
-          <button class="text-btn" id="editBudgetBtn">Edit monthly limit ↗</button>
+          <button class="text-btn" id="editBudgetBtn">Edit limit ↗</button>
         </article>
       </div>
 
@@ -755,20 +442,20 @@
           </div>
           <div class="percentage-row">
             <strong id="budgetPercent">0%</strong>
-            <span class="muted">&nbsp;of your monthly budget used</span>
+            <span class="muted">&nbsp;used</span>
           </div>
           <div class="progress-track"><div id="budgetProgress"></div></div>
           <div class="progress-labels"><span>RM 0</span><span id="budgetMaximum">RM 300</span></div>
-          <div class="budget-message" id="budgetMessage">✦ You're starting fresh this month.</div>
+          <div class="budget-message" id="budgetMessage">✦ Starting fresh this month.</div>
         </article>
 
         <article class="panel">
           <div class="panel-heading">
-            <div><p class="eyebrow">WHERE IT GOES</p><h3>Spending breakdown</h3></div>
+            <div><p class="eyebrow">WHERE IT GOES</p><h3>Breakdown</h3></div>
             <span class="coffee-gold">☕</span>
           </div>
           <div id="categoryBreakdown" class="category-list">
-            <p class="muted">Add expenses to see your category breakdown.</p>
+            <p class="muted">No expenses recorded yet.</p>
           </div>
         </article>
       </div>
@@ -794,8 +481,8 @@
       <div class="section-heading">
         <div><p class="eyebrow">ALL RECORDS</p><h2>Every ringgit, accounted for.</h2></div>
         <div class="filters">
-          <input id="searchInput" type="search" placeholder="Search title or note..." aria-label="Search expenses">
-          <select id="categoryFilter" aria-label="Filter by category">
+          <input id="searchInput" type="search" placeholder="Search title..." aria-label="Search">
+          <select id="categoryFilter" aria-label="Filter">
             <option value="all">All categories</option>
           </select>
         </div>
@@ -803,7 +490,6 @@
       <article class="panel">
         <div class="panel-heading">
           <div><p class="eyebrow">TRANSACTION HISTORY</p><h3 id="transactionCount">0 transactions</h3></div>
-          <span class="muted small">Newest first</span>
         </div>
         <div class="table-wrap">
           <table>
@@ -816,29 +502,24 @@
       </article>
     </section>
 
-    <!-- SAVINGS GOALS PLATFORM -->
+    <!-- SAVINGS GOALS VIEW -->
     <section id="savingsView" class="view">
       <div class="section-heading">
         <div>
           <p class="eyebrow">WHAT ARE YOU SAVING FOR?</p>
           <h2>Set goals and reach them.</h2>
-          <p class="muted">Track target amounts for laptops, trips, books, or emergencies.</p>
         </div>
-        <button class="primary-btn" id="addGoalBtn">＋ New Savings Goal</button>
+        <button class="primary-btn" id="addGoalBtn">＋ New Goal</button>
       </div>
-
-      <div class="savings-grid" id="savingsGrid">
-        <!-- Savings Cards rendered dynamically -->
-      </div>
+      <div class="savings-grid" id="savingsGrid"></div>
     </section>
 
-    <!-- INSIGHTS & AVERAGE MONTHLY SPENDING FEATURE -->
+    <!-- INSIGHTS VIEW -->
     <section id="insightsView" class="view">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">ANALYTICS & PATTERNS</p>
-          <h2>Smarter financial habits.</h2>
-          <p class="muted">Deep dive into your average spending per month and categories.</p>
+          <p class="eyebrow">ANALYTICS</p>
+          <h2>Smarter habits.</h2>
         </div>
       </div>
 
@@ -846,179 +527,167 @@
         <article class="panel feature-panel">
           <p class="eyebrow coffee-gold">AVERAGE SPENDING FEATURE</p>
           <h2>Monthly Average Spend</h2>
-          <p class="muted">Calculated across all historical recorded months in your workspace.</p>
+          <p class="muted">Calculated across all historical recorded months.</p>
           <div class="insight-total">
             <strong id="avgMonthlySpend">RM 0.00</strong>
             <small id="avgMonthlyCaption">Based on 0 active month(s)</small>
           </div>
-          <p class="small-tip">💡 Tip: Comparing your active month against your average helps spot spending spikes early!</p>
         </article>
 
         <article class="panel">
           <p class="eyebrow">TOP CATEGORY THIS MONTH</p>
           <h3 id="topCategory">No spending recorded</h3>
-          <p class="muted" id="topCategoryCopy">Add expenses to reveal your highest spending category.</p>
+          <p class="muted" id="topCategoryCopy">Record expenses to see patterns.</p>
         </article>
 
         <article class="panel">
           <p class="eyebrow">AVERAGE PER TRANSACTION</p>
           <h3 id="averageExpense">RM 0.00</h3>
-          <p class="muted">Average amount spent per transaction in the selected month.</p>
-        </article>
-
-        <article class="panel">
-          <p class="eyebrow">STUDENT SAVINGS RULE</p>
-          <h3>The 24-Hour Rule</h3>
-          <p class="muted">Wait 24 hours before making non-essential purchases to curb impulse buying!</p>
         </article>
       </div>
     </section>
 
-    <!-- BARISTA RUSH MINI-GAME VIEW -->
+    <!-- BARISTA RUSH MINIGAME VIEW -->
     <section id="minigameView" class="view">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">STUDENT CAFE ARCADE</p>
-          <h2>Barista Rush Mini-Game</h2>
-          <p class="muted">Fulfill coffee orders to earn tips, unlock achievements, and claim rewards!</p>
+          <p class="eyebrow">BARISTA RUSH</p>
+          <h2>Student Cafe Arcade</h2>
         </div>
         <div class="game-score-badge">
-          <span>CAFE TIPS:</span> <strong id="gameScore">0</strong> PTS
+          TIPS: <strong id="gameScore">0</strong> PTS
         </div>
       </div>
 
       <div class="game-layout">
-        <!-- GAME ARENA -->
         <article class="panel">
           <div class="order-box">
-            <p class="eyebrow">CURRENT STUDENT ORDER</p>
-            <h2 id="orderTitle">Click "Start Shift" to Begin!</h2>
-            <div id="orderRecipe" class="coffee-gold">Serve drinks to earn points.</div>
+            <p class="eyebrow">ORDER</p>
+            <h2 id="orderTitle">Click "Start Shift"</h2>
+            <div id="orderRecipe" class="coffee-gold">Serve drinks to earn tips.</div>
           </div>
 
           <div>
-            <p class="eyebrow">PREPARE INGREDIENTS</p>
+            <p class="eyebrow">INGREDIENTS</p>
             <div class="ingredient-buttons">
               <button class="ing-btn" data-ing="Espresso">☕ Espresso</button>
-              <button class="ing-btn" data-ing="Steamed Milk">🥛 Steamed Milk</button>
+              <button class="ing-btn" data-ing="Steamed Milk">🥛 Milk</button>
               <button class="ing-btn" data-ing="Matcha">🍵 Matcha</button>
-              <button class="ing-btn" data-ing="Caramel Syrup">🍯 Caramel Syrup</button>
-              <button class="ing-btn" data-ing="Ice Cubes">🧊 Ice Cubes</button>
+              <button class="ing-btn" data-ing="Caramel Syrup">🍯 Caramel</button>
+              <button class="ing-btn" data-ing="Ice Cubes">🧊 Ice</button>
             </div>
-            <div class="current-cup">
-              <span>Cup Contents:</span>
-              <strong id="cupContents">Empty</strong>
-            </div>
+            <div class="current-cup">Cup: <strong id="cupContents">Empty</strong></div>
           </div>
 
           <div class="game-actions">
-            <button class="secondary-btn" id="clearCupBtn">Clear Cup</button>
+            <button class="secondary-btn" id="clearCupBtn">Clear</button>
             <button class="primary-btn" id="serveDrinkBtn">Serve Order ↗</button>
             <button class="gold-btn" id="startShiftBtn">Start 30s Shift ⏱</button>
           </div>
           <div class="timer-display">Time Left: <span id="gameTimer">30</span>s</div>
         </article>
 
-        <!-- ACHIEVEMENTS & REWARDS -->
         <article class="panel">
-          <h3>🏆 Achievements & Rewards</h3>
+          <h3>🏆 Achievements</h3>
           <div class="achievements-list" id="achievementsList"></div>
         </article>
       </div>
     </section>
-
-    <footer>
-      <span>EX-SPEND © <span id="year"></span> STUDENT CAFE EDITION</span>
-      <span>SPEND WITH INTENTION — BUILT FOR STUDENTS.</span>
-    </footer>
   </main>
 
-  <!-- MODALS -->
-  <dialog id="expenseDialog" class="modal">
-    <form id="expenseForm">
-      <div class="modal-heading">
-        <div><p class="eyebrow">NEW TRANSACTION</p><h2>Add an expense</h2></div>
+  <!-- OVERLAY MODALS -->
+  <div id="expenseModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="panel-heading">
+        <h3>Add Expense</h3>
         <button type="button" class="delete-btn" id="closeExpense">×</button>
       </div>
+      <form id="expenseForm">
+        <div class="field">
+          <label>Title</label>
+          <input id="expenseTitle" placeholder="e.g. Latte at Library" required>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Amount (RM)</label>
+            <input id="expenseAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input id="expenseDate" type="date" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="expenseCategory" required></select>
+        </div>
+        <div class="field">
+          <label>Note (optional)</label>
+          <input id="expenseNote" placeholder="Details...">
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button type="button" class="secondary-btn" id="cancelExpense">Cancel</button>
+          <button type="submit" class="primary-btn">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      <label class="field">What did you spend on?
-        <input id="expenseTitle" maxlength="70" placeholder="e.g. Iced Latte at Library" required>
-      </label>
-
-      <div class="form-grid">
-        <label class="field">Amount (RM)
-          <input id="expenseAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
-        </label>
-        <label class="field">Date
-          <input id="expenseDate" type="date" required>
-        </label>
-      </div>
-
-      <label class="field">Category
-        <select id="expenseCategory" required></select>
-      </label>
-
-      <label class="field">Note <span class="muted">(optional)</span>
-        <textarea id="expenseNote" rows="2" maxlength="180" placeholder="Add details..."></textarea>
-      </label>
-
-      <div class="modal-actions">
-        <button type="button" class="secondary-btn" id="cancelExpense">Cancel</button>
-        <button type="submit" class="primary-btn">Save Expense ↗</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="budgetDialog" class="modal">
-    <form id="budgetForm">
-      <div class="modal-heading">
-        <div><p class="eyebrow">MONTHLY LIMIT</p><h2>Set Monthly Budget</h2></div>
+  <div id="budgetModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="panel-heading">
+        <h3>Set Monthly Budget</h3>
         <button type="button" class="delete-btn" id="closeBudget">×</button>
       </div>
-      <label class="field">Monthly Budget (RM)
-        <input id="budgetInput" type="number" min="1" step="0.01" required>
-      </label>
-      <div class="modal-actions">
-        <button type="button" class="secondary-btn" id="cancelBudget">Cancel</button>
-        <button type="submit" class="primary-btn">Save Budget ↗</button>
-      </div>
-    </form>
-  </dialog>
+      <form id="budgetForm">
+        <div class="field">
+          <label>Monthly Budget (RM)</label>
+          <input id="budgetInput" type="number" min="1" step="0.01" required>
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button type="button" class="secondary-btn" id="cancelBudget">Cancel</button>
+          <button type="submit" class="primary-btn">Save Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-  <dialog id="goalDialog" class="modal">
-    <form id="goalForm">
-      <div class="modal-heading">
-        <div><p class="eyebrow">NEW GOAL</p><h2>Add Savings Goal</h2></div>
+  <div id="goalModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="panel-heading">
+        <h3>Add Savings Goal</h3>
         <button type="button" class="delete-btn" id="closeGoal">×</button>
       </div>
+      <form id="goalForm">
+        <div class="field">
+          <label>What are you saving for?</label>
+          <input id="goalTitle" placeholder="e.g. New Laptop" required>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Target Price (RM)</label>
+            <input id="goalTarget" type="number" min="1" step="0.01" placeholder="1500.00" required>
+          </div>
+          <div class="field">
+            <label>Saved So Far (RM)</label>
+            <input id="goalCurrent" type="number" min="0" step="0.01" value="0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input id="goalNote" placeholder="Details...">
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+          <button type="button" class="secondary-btn" id="cancelGoal">Cancel</button>
+          <button type="submit" class="primary-btn">Create Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      <label class="field">What are you saving for?
-        <input id="goalTitle" placeholder="e.g. New Laptop, Books, Concert Ticket" required>
-      </label>
+  <div class="toast" id="toast"></div>
 
-      <div class="form-grid">
-        <label class="field">How much is it? (RM)
-          <input id="goalTarget" type="number" min="1" step="0.01" placeholder="1500.00" required>
-        </label>
-        <label class="field">Saved so far (RM)
-          <input id="goalCurrent" type="number" min="0" step="0.01" placeholder="0.00" value="0">
-        </label>
-      </div>
-
-      <label class="field">Details / Notes <span class="muted">(optional)</span>
-        <textarea id="goalNote" rows="2" placeholder="Why is this important to you?"></textarea>
-      </label>
-
-      <div class="modal-actions">
-        <button type="button" class="secondary-btn" id="cancelGoal">Cancel</button>
-        <button type="submit" class="primary-btn">Create Goal ↗</button>
-      </div>
-    </form>
-  </dialog>
-
-  <div class="toast" id="toast" role="status"></div>
-
-  <!-- JAVASCRIPT APP LOGIC -->
+  <!-- JAVASCRIPT APP ENGINE -->
   <script>
     "use strict";
 
@@ -1036,25 +705,16 @@
     const STORAGE_KEY = "ex-spend-student-cafe-v1";
     const $ = id => document.getElementById(id);
 
-    const money = amount =>
-      "RM " + Number(amount || 0).toLocaleString("en-MY", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
+    const money = amt => "RM " + Number(amt || 0).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    function localDate(date = new Date()) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
+    function localDate(d = new Date()) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     }
 
     function currentMonth() { return localDate().slice(0, 7); }
 
-    function escapeHTML(str) {
-      return String(str || "").replace(/[&<>"']/g, c => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-      })[c]);
+    function escapeHTML(s) {
+      return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[c]);
     }
 
     function loadData() {
@@ -1069,7 +729,7 @@
             unlockedAchieve: Array.isArray(saved.unlockedAchieve) ? saved.unlockedAchieve : []
           };
         }
-      } catch (e) { console.error("Load error:", e); }
+      } catch (e) {}
       return { budget: 300, expenses: [], savings: [], score: 0, unlockedAchieve: [] };
     }
 
@@ -1086,7 +746,7 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 2500);
     }
 
-    // NAVIGATION SYSTEM
+    // NAVIGATION TABS
     document.querySelectorAll("[data-view]").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -1094,6 +754,7 @@
         
         btn.classList.add("active");
         $(`${btn.dataset.view}View`).classList.add("active");
+        window.scrollTo(0, 0);
       });
     });
 
@@ -1104,12 +765,8 @@
     });
 
     function setupCategories() {
-      $("expenseCategory").innerHTML = CATEGORIES.map(c => 
-        `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`
-      ).join("");
-
-      $("categoryFilter").innerHTML = '<option value="all">All categories</option>' + 
-        CATEGORIES.map(c => `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`).join("");
+      $("expenseCategory").innerHTML = CATEGORIES.map(c => `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`).join("");
+      $("categoryFilter").innerHTML = '<option value="all">All categories</option>' + CATEGORIES.map(c => `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`).join("");
     }
 
     function selectedMonthExpenses() {
@@ -1126,9 +783,7 @@
       $("totalSpent").textContent = money(spent);
       $("budgetLeft").textContent = money(remaining);
       $("budgetAmount").textContent = money(state.budget);
-      
       $("budgetLeft").style.color = remaining < 0 ? "var(--red)" : "var(--text)";
-      $("leftCaption").textContent = remaining < 0 ? `${money(Math.abs(remaining))} over budget` : "Room to make it count";
 
       $("budgetPercent").textContent = `${Math.round(pct)}%`;
       $("budgetMaximum").textContent = money(state.budget);
@@ -1139,7 +794,7 @@
 
       const status = $("budgetStatus");
       status.className = "pill" + (pct >= 100 ? " danger" : pct >= 75 ? " warning" : "");
-      status.textContent = pct >= 100 ? "Budget Exceeded" : pct >= 75 ? "Getting Close" : "On Track";
+      status.textContent = pct >= 100 ? "Exceeded" : pct >= 75 ? "Close" : "On track";
 
       renderCategoryBreakdown(expenses, spent);
       renderTransactionTable($("recentTransactions"), expenses.slice(0, 5));
@@ -1148,7 +803,7 @@
     function renderCategoryBreakdown(expenses, total) {
       const container = $("categoryBreakdown");
       if (!expenses.length) {
-        container.innerHTML = '<p class="muted">No expenses recorded for this month.</p>';
+        container.innerHTML = '<p class="muted">No expenses recorded yet.</p>';
         return;
       }
 
@@ -1171,7 +826,7 @@
 
     function renderTransactionTable(container, list) {
       if (!list.length) {
-        container.innerHTML = '<tr><td colspan="5" class="muted">No transactions found.</td></tr>';
+        container.innerHTML = '<tr><td colspan="5" class="muted">No records found.</td></tr>';
         return;
       }
 
@@ -1192,7 +847,7 @@
             <td class="muted">${item.date}</td>
             <td class="right"><strong>${money(item.amount)}</strong></td>
             <td class="right">
-              <button class="delete-btn" onclick="deleteExpense('${item.id}')" title="Delete">🗑️</button>
+              <button class="delete-btn" onclick="deleteExpense('${item.id}')">🗑️</button>
             </td>
           </tr>
         `;
@@ -1200,11 +855,11 @@
     }
 
     window.deleteExpense = function(id) {
-      if (confirm("Delete this expense record?")) {
+      if (confirm("Delete this transaction?")) {
         state.expenses = state.expenses.filter(e => e.id !== id);
         saveData();
         updateAll();
-        showToast("Transaction deleted.");
+        showToast("Deleted.");
       }
     };
 
@@ -1224,7 +879,7 @@
     function renderSavings() {
       const container = $("savingsGrid");
       if (!state.savings.length) {
-        container.innerHTML = '<p class="muted">No savings goals set yet. Click "New Savings Goal" to start!</p>';
+        container.innerHTML = '<p class="muted">No goals set yet. Tap "+ New Goal" to start!</p>';
         return;
       }
 
@@ -1256,16 +911,16 @@
         goal.current += Number(amt);
         saveData();
         renderSavings();
-        showToast("Funds updated!");
+        showToast("Goal updated!");
       }
     };
 
     window.deleteGoal = function(id) {
-      if (confirm("Delete this goal?")) {
+      if (confirm("Delete this savings goal?")) {
         state.savings = state.savings.filter(g => g.id !== id);
         saveData();
         renderSavings();
-        showToast("Savings goal removed.");
+        showToast("Goal removed.");
       }
     };
 
@@ -1294,13 +949,13 @@
       });
 
       $("topCategory").textContent = maxVal > 0 ? topCat : "No spending recorded";
-      $("topCategoryCopy").textContent = maxVal > 0 ? `Highest spending at ${money(maxVal)}` : "Record expenses to see patterns.";
+      $("topCategoryCopy").textContent = maxVal > 0 ? `Highest spend: ${money(maxVal)}` : "Record expenses to reveal.";
 
       const avgPerTx = expenses.length > 0 ? expenses.reduce((s, e) => s + Number(e.amount), 0) / expenses.length : 0;
       $("averageExpense").textContent = money(avgPerTx);
     }
 
-    // MINI-GAME LOGIC
+    // MINI-GAME ENGINE
     const DRINKS = [
       { title: "Classic Espresso", recipe: ["Espresso"] },
       { title: "Iced Caramel Latte", recipe: ["Espresso", "Steamed Milk", "Caramel Syrup", "Ice Cubes"] },
@@ -1309,8 +964,8 @@
     ];
 
     const ACHIEVEMENTS = [
-      { id: "first_brew", title: "First Shift", desc: "Earn at least 10 PTS in Barista Rush." },
-      { id: "barista_master", title: "Master Barista", desc: "Reach 50 total Tip points." }
+      { id: "first_brew", title: "First Shift", desc: "Earn 10 PTS in Barista Rush." },
+      { id: "barista_master", title: "Master Barista", desc: "Earn 50 Tip PTS." }
     ];
 
     let currentOrder = null;
@@ -1342,12 +997,9 @@
       });
     });
 
-    $("clearCupBtn").addEventListener("click", () => {
-      currentCup = [];
-      $("cupContents").textContent = "Empty";
-    });
+    $("clearCupBtn").onclick = () => { currentCup = []; $("cupContents").textContent = "Empty"; };
 
-    $("startShiftBtn").addEventListener("click", () => {
+    $("startShiftBtn").onclick = () => {
       clearInterval(timerInterval);
       gameTimer = 30;
       currentCup = [];
@@ -1359,10 +1011,10 @@
         $("gameTimer").textContent = gameTimer;
         if (gameTimer <= 0) {
           clearInterval(timerInterval);
-          alert(`Shift finished! Total Cafe Tips: ${state.score}`);
+          alert(`Shift complete! Cafe Tips earned: ${state.score}`);
         }
       }, 1000);
-    });
+    };
 
     function nextOrder() {
       currentOrder = DRINKS[Math.floor(Math.random() * DRINKS.length)];
@@ -1370,18 +1022,18 @@
       $("orderRecipe").textContent = "Recipe: " + currentOrder.recipe.join(" + ");
     }
 
-    $("serveDrinkBtn").addEventListener("click", () => {
-      if (!currentOrder) return alert("Click 'Start 30s Shift' first!");
+    $("serveDrinkBtn").onclick = () => {
+      if (!currentOrder) return alert("Tap 'Start 30s Shift' first!");
       
       const isCorrect = currentOrder.recipe.length === currentCup.length && 
-        currentOrder.recipe.every((val, index) => val === currentCup[index]);
+        currentOrder.recipe.every((val, idx) => val === currentCup[idx]);
 
       if (isCorrect) {
         state.score += 10;
-        showToast("Perfect drink served! +10 PTS");
+        showToast("Perfect drink! +10 PTS");
         checkAchievements();
       } else {
-        showToast("Wrong recipe! Order wasted.");
+        showToast("Wrong recipe!");
       }
 
       currentCup = [];
@@ -1389,34 +1041,37 @@
       saveData();
       renderMinigame();
       nextOrder();
-    });
+    };
 
     function checkAchievements() {
       if (state.score >= 10 && !state.unlockedAchieve.includes("first_brew")) {
         state.unlockedAchieve.push("first_brew");
-        showToast("🏆 Achievement Unlocked: First Shift!");
+        showToast("🏆 Unlocked: First Shift!");
       }
       if (state.score >= 50 && !state.unlockedAchieve.includes("barista_master")) {
         state.unlockedAchieve.push("barista_master");
-        showToast("🏆 Achievement Unlocked: Master Barista!");
+        showToast("🏆 Unlocked: Master Barista!");
       }
     }
 
-    // MODAL HANDLERS
-    $("addExpenseBtn").onclick = () => $("expenseDialog").showModal();
-    $("closeExpense").onclick = () => $("expenseDialog").close();
-    $("cancelExpense").onclick = () => $("expenseDialog").close();
+    // MODAL CONTROL FUNCTIONS
+    const openModal = el => el.classList.add("active");
+    const closeModal = el => el.classList.remove("active");
+
+    $("addExpenseBtn").onclick = () => openModal($("expenseModal"));
+    $("closeExpense").onclick = () => closeModal($("expenseModal"));
+    $("cancelExpense").onclick = () => closeModal($("expenseModal"));
 
     $("editBudgetBtn").onclick = () => {
       $("budgetInput").value = state.budget;
-      $("budgetDialog").showModal();
+      openModal($("budgetModal"));
     };
-    $("closeBudget").onclick = () => $("budgetDialog").close();
-    $("cancelBudget").onclick = () => $("budgetDialog").close();
+    $("closeBudget").onclick = () => closeModal($("budgetModal"));
+    $("cancelBudget").onclick = () => closeModal($("budgetModal"));
 
-    $("addGoalBtn").onclick = () => $("goalDialog").showModal();
-    $("closeGoal").onclick = () => $("goalDialog").close();
-    $("cancelGoal").onclick = () => $("goalDialog").close();
+    $("addGoalBtn").onclick = () => openModal($("goalModal"));
+    $("closeGoal").onclick = () => closeModal($("goalModal"));
+    $("cancelGoal").onclick = () => closeModal($("goalModal"));
 
     $("expenseForm").onsubmit = e => {
       e.preventDefault();
@@ -1431,7 +1086,7 @@
       saveData();
       updateAll();
       $("expenseForm").reset();
-      $("expenseDialog").close();
+      closeModal($("expenseModal"));
       showToast("Expense added!");
     };
 
@@ -1440,7 +1095,7 @@
       state.budget = Number($("budgetInput").value);
       saveData();
       updateAll();
-      $("budgetDialog").close();
+      closeModal($("budgetModal"));
       showToast("Budget updated!");
     };
 
@@ -1456,8 +1111,8 @@
       saveData();
       renderSavings();
       $("goalForm").reset();
-      $("goalDialog").close();
-      showToast("Savings Goal created!");
+      closeModal($("goalModal"));
+      showToast("Savings goal created!");
     };
 
     $("monthFilter").value = currentMonth();
@@ -1475,7 +1130,6 @@
 
     // INITIALIZATION
     $("expenseDate").value = localDate();
-    $("year").textContent = new Date().getFullYear();
     setupCategories();
     updateAll();
   </script>
