@@ -27,9 +27,7 @@ function localDate(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-function currentMonth() {
-  return localDate().slice(0, 7);
-}
+function currentMonth() { return localDate().slice(0, 7); }
 
 function escapeHTML(str) {
   return String(str || "").replace(/[&<>"']/g, c => ({
@@ -37,7 +35,6 @@ function escapeHTML(str) {
   })[c]);
 }
 
-// Load default or local data
 function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -50,18 +47,14 @@ function loadData() {
         unlockedAchieve: Array.isArray(saved.unlockedAchieve) ? saved.unlockedAchieve : []
       };
     }
-  } catch (e) {
-    console.error("Load error:", e);
-  }
+  } catch (e) { console.error("Load error:", e); }
   return { budget: 300, expenses: [], savings: [], score: 0, unlockedAchieve: [] };
 }
 
 let state = loadData();
 let toastTimer;
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
+function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
 function showToast(msg) {
   const toast = $("toast");
@@ -71,7 +64,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
-// Navigation View Switcher
+// NAVIGATION SYSTEM
 document.querySelectorAll("[data-view]").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
@@ -84,12 +77,10 @@ document.querySelectorAll("[data-view]").forEach(btn => {
 
 document.querySelectorAll("[data-goto]").forEach(btn => {
   btn.addEventListener("click", () => {
-    const target = btn.dataset.goto;
-    document.querySelector(`[data-view="${target}"]`).click();
+    document.querySelector(`[data-view="${btn.dataset.goto}"]`).click();
   });
 });
 
-// Category Population
 function setupCategories() {
   $("expenseCategory").innerHTML = CATEGORIES.map(c => 
     `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`
@@ -99,7 +90,6 @@ function setupCategories() {
     CATEGORIES.map(c => `<option value="${escapeHTML(c.name)}">${c.icon} ${escapeHTML(c.name)}</option>`).join("");
 }
 
-// EXPENSE & DASHBOARD LOGIC
 function selectedMonthExpenses() {
   const month = $("monthFilter").value || currentMonth();
   return state.expenses.filter(e => e.date.slice(0, 7) === month);
@@ -136,7 +126,7 @@ function renderDashboard() {
 function renderCategoryBreakdown(expenses, total) {
   const container = $("categoryBreakdown");
   if (!expenses.length) {
-    container.innerHTML = '<p class="empty">No expenses recorded for this month.</p>';
+    container.innerHTML = '<p class="muted">No expenses recorded for this month.</p>';
     return;
   }
 
@@ -157,7 +147,6 @@ function renderCategoryBreakdown(expenses, total) {
   }).join("");
 }
 
-// TRANSACTIONS & DELETE FUNCTIONALITY
 function renderTransactionTable(container, list) {
   if (!list.length) {
     container.innerHTML = '<tr><td colspan="5" class="muted">No transactions found.</td></tr>';
@@ -181,7 +170,7 @@ function renderTransactionTable(container, list) {
         <td class="muted">${item.date}</td>
         <td class="right"><strong>${money(item.amount)}</strong></td>
         <td class="right">
-          <button class="delete-btn" onclick="deleteExpense('${item.id}')" title="Delete Expense">🗑️</button>
+          <button class="delete-btn" onclick="deleteExpense('${item.id}')" title="Delete">🗑️</button>
         </td>
       </tr>
     `;
@@ -189,7 +178,7 @@ function renderTransactionTable(container, list) {
 }
 
 window.deleteExpense = function(id) {
-  if (confirm("Are you sure you want to delete this expense?")) {
+  if (confirm("Delete this expense record?")) {
     state.expenses = state.expenses.filter(e => e.id !== id);
     saveData();
     updateAll();
@@ -209,7 +198,7 @@ function renderAllTransactions() {
   renderTransactionTable($("allTransactions"), list);
 }
 
-// SAVINGS GOALS FEATURE
+// SAVINGS GOALS
 function renderSavings() {
   const container = $("savingsGrid");
   if (!state.savings.length) {
@@ -230,7 +219,7 @@ function renderSavings() {
         <div class="progress-track"><div style="width:${pct}%;background:var(--coffee-gold);height:100%"></div></div>
         <div class="goal-actions">
           <button class="secondary-btn" onclick="addFundsGoal('${goal.id}')">＋ Add Funds</button>
-          <button class="delete-btn" onclick="deleteGoal('${goal.id}')">🗑️ Delete Goal</button>
+          <button class="delete-btn" onclick="deleteGoal('${goal.id}')">🗑️ Delete</button>
         </div>
       </div>
     `;
@@ -245,12 +234,12 @@ window.addFundsGoal = function(id) {
     goal.current += Number(amt);
     saveData();
     renderSavings();
-    showToast("Saved funds updated!");
+    showToast("Funds updated!");
   }
 };
 
 window.deleteGoal = function(id) {
-  if (confirm("Delete this savings goal?")) {
+  if (confirm("Delete this goal?")) {
     state.savings = state.savings.filter(g => g.id !== id);
     saveData();
     renderSavings();
@@ -258,9 +247,8 @@ window.deleteGoal = function(id) {
   }
 };
 
-// INSIGHTS & AVERAGE SPENDING FEATURE
+// INSIGHTS & AVERAGE MONTHLY SPENDING
 function renderInsights() {
-  // Calculate average spending per month
   const monthMap = {};
   state.expenses.forEach(e => {
     const m = e.date.slice(0, 7);
@@ -274,7 +262,6 @@ function renderInsights() {
   $("avgMonthlySpend").textContent = money(avg);
   $("avgMonthlyCaption").textContent = `Calculated across ${months.length} active month(s)`;
 
-  // Current Month Top Category
   const expenses = selectedMonthExpenses();
   const catTotals = {};
   expenses.forEach(e => catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount));
@@ -291,7 +278,7 @@ function renderInsights() {
   $("averageExpense").textContent = money(avgPerTx);
 }
 
-// BARISTA RUSH MINI-GAME LOGIC
+// MINI-GAME LOGIC
 const DRINKS = [
   { title: "Classic Espresso", recipe: ["Espresso"] },
   { title: "Iced Caramel Latte", recipe: ["Espresso", "Steamed Milk", "Caramel Syrup", "Ice Cubes"] },
@@ -350,7 +337,7 @@ $("startShiftBtn").addEventListener("click", () => {
     $("gameTimer").textContent = gameTimer;
     if (gameTimer <= 0) {
       clearInterval(timerInterval);
-      alert(`Shift finished! Your total Cafe Tips: ${state.score}`);
+      alert(`Shift finished! Total Cafe Tips: ${state.score}`);
     }
   }, 1000);
 });
@@ -393,7 +380,7 @@ function checkAchievements() {
   }
 }
 
-// MODAL CONTROLS & FORM SUBMISSIONS
+// MODAL HANDLERS
 $("addExpenseBtn").onclick = () => $("expenseDialog").showModal();
 $("closeExpense").onclick = () => $("expenseDialog").close();
 $("cancelExpense").onclick = () => $("expenseDialog").close();
@@ -411,16 +398,14 @@ $("cancelGoal").onclick = () => $("goalDialog").close();
 
 $("expenseForm").onsubmit = e => {
   e.preventDefault();
-  const expense = {
+  state.expenses.push({
     id: "exp_" + Date.now(),
     title: $("expenseTitle").value.trim(),
     amount: Number($("expenseAmount").value),
     date: $("expenseDate").value,
     category: $("expenseCategory").value,
     note: $("expenseNote").value.trim()
-  };
-
-  state.expenses.push(expense);
+  });
   saveData();
   updateAll();
   $("expenseForm").reset();
@@ -446,7 +431,6 @@ $("goalForm").onsubmit = e => {
     current: Number($("goalCurrent").value) || 0,
     note: $("goalNote").value.trim()
   });
-
   saveData();
   renderSavings();
   $("goalForm").reset();
@@ -467,7 +451,7 @@ function updateAll() {
   renderMinigame();
 }
 
-// INIT
+// INITIALIZATION
 $("expenseDate").value = localDate();
 $("year").textContent = new Date().getFullYear();
 setupCategories();
